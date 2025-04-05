@@ -1,10 +1,10 @@
-import type { Preview } from '@storybook/react';
-import '../lib/global.css';
+import type { Preview } from "@storybook/react";
+import "../lib/global.css";
 
 const preview: Preview = {
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    actions: { argTypesRegex: '^on[A-Z].*' },
+    actions: { argTypesRegex: "^on[A-Z].*" },
     controls: {
       matchers: {
         color: /(background|color)$/i,

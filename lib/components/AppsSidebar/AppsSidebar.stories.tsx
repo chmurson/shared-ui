@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { AppsSidebar } from './index';
+import { AppsSidebar } from "./index";
 
 const meta = {
-  title: 'Components/AppsSidebar',
+  title: "Components/AppsSidebar",
   component: AppsSidebar,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
   argTypes: {},
 } satisfies Meta<typeof AppsSidebar>;

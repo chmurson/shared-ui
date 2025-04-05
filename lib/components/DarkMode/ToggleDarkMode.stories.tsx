@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { ToggleDarkMode } from '.';
+import { ToggleDarkMode } from ".";
 
 const meta = {
-  title: 'Components/ToggleDarkMode',
+  title: "Components/ToggleDarkMode",
   component: ToggleDarkMode,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
   argTypes: {},
 } satisfies Meta<typeof ToggleDarkMode>;

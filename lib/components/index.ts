@@ -1,3 +1,3 @@
-export * from './Header';
-export * from './DarkMode';
-export * from './AppsSidebar';
+export * from "./Header";
+export * from "./DarkMode";
+export * from "./AppsSidebar";

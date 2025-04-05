@@ -1,22 +1,19 @@
-import { Button } from '@/ui/button';
-import { Moon, Sun } from 'lucide-react';
-import { useIsDarkMode, useToggleColorMode } from './utils';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/ui/select';
+import { Button } from "@/ui/button";
+import { Moon, Sun } from "lucide-react";
+import { useIsDarkMode, useToggleColorMode } from "./utils";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/ui/select";
 
 export const ToggleDarkMode = ({ className }: { className: string }) => {
   const isDark = useIsDarkMode();
   const toggleColorMode = useToggleColorMode();
   const onClick = (val: string) => {
-    if ((isDark && val === 'light') || (!isDark && val === 'dark')) {
+    if ((isDark && val === "light") || (!isDark && val === "dark")) {
       toggleColorMode();
     }
   };
 
   return (
-    <Select
-      onValueChange={onClick}
-      defaultValue={isDark ? 'dark' : 'light'}
-    >
+    <Select onValueChange={onClick} defaultValue={isDark ? "dark" : "light"}>
       <SelectTrigger
         onClick={(e) => {
           e.currentTarget.blur();
@@ -54,11 +51,7 @@ export const ToggleDarkModeIcon = () => {
   const onCLick = toggleColorMode;
 
   return (
-    <Button
-      onClick={onCLick}
-      className="text-title-foreground p-2 border rounded"
-      variant="ghost"
-    >
+    <Button onClick={onCLick} className="text-title-foreground p-2 border rounded" variant="ghost">
       {isDark ? <Sun width="30px" /> : <Moon width="30px" />}
     </Button>
   );

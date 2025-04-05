@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
   --title-foreground: hsl(0 0% 56%);
@@ -40,7 +40,7 @@
 
   --toastify-toast-width: 350px;
 
-  --font-display: 'Poppins', 'sans-serif';
+  --font-display: "Poppins", "sans-serif";
 }
 
 .dark {
@@ -119,6 +119,6 @@ body {
     font-style: normal;
     font-weight: 200 700;
     font-display: swap;
-    src: url('/fonts/Oswald.woff2') format('woff2');
+    src: url("/fonts/Oswald.woff2") format("woff2");
   }
 }

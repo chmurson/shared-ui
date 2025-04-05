@@ -29,4 +29,3 @@ Components library for Fluffy Labs
 - `build:lib`: Builds your component library with Vite.
 - `lint`: Runs ESLint.
 - `format`: Formats your code with Prettier.
-
