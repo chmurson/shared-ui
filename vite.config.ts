@@ -1,30 +1,44 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import dts from "vite-plugin-dts";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+/// <reference types="vitest/config" />
+import { join, resolve } from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react-swc';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
+import path from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { peerDependencies } from './package.json';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    dts({
-      include: ["lib"],
-      // TODO it optimize the build. Check if it is necessary for real case scenario
-      // rollupTypes: true,
-      tsconfigPath: "tsconfig.lib.json",
-    }),
+    tailwindcss(),
+    dts({ rollupTypes: true }), // Output .d.ts files
   ],
   build: {
+    target: 'esnext',
+    minify: false,
     lib: {
-      entry: resolve(__dirname, "lib/main.ts"),
-      formats: ["es"],
+      entry: resolve(__dirname, join('lib', 'index.ts')),
+      fileName: 'index',
+      cssFileName: 'style',
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      // make sure to externalize deps that shouldn't be bundled
-      external: ["react", "react/jsx-runtime"],
+      // Exclude peer dependencies from the bundle to reduce bundle size
+      external: ['react/jsx-runtime', ...Object.keys(peerDependencies)],
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './lib/test/setup.ts',
+    coverage: {
+      all: false,
+      enabled: true,
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './lib'),
     },
   },
 });
