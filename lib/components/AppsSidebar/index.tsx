@@ -8,20 +8,40 @@ import { cn } from "@/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import type { ReactNode } from "react";
 
-export const AppsSidebar = () => {
+export const AppsSidebar = ({ activeLink }: { activeLink: "debugger" | "reader" | "trie" | "codec" | "website" }) => {
   return (
     <div className="flex flex-col gap-5 bg-sidebar max-sm:hidden">
       <div className="grow flex flex-col items-center justify-center px-3">
-        <SidebarLink name="Gray Paper Reader" href="https://graypaper.fluffylabs.dev" icon={<Stack />} />
-        <SidebarLink name="PVM Debugger" href="/" icon={<Debugger />} active />
-        <SidebarLink name="Trie Visualiser" href="https://trie.fluffylabs.dev" icon={<Computers />} />
+        <SidebarLink
+          name="Gray Paper Reader"
+          href="https://graypaper.fluffylabs.dev"
+          icon={<Stack />}
+          active={activeLink === "reader"}
+        />
+        <SidebarLink name="PVM Debugger" href="/" icon={<Debugger />} active={activeLink === "debugger"} />
+        <SidebarLink
+          name="Trie Visualiser"
+          href="https://trie.fluffylabs.dev"
+          icon={<Computers />}
+          active={activeLink === "trie"}
+        />
         {/*<SidebarLink
           name="??"
           href="#"
           icon={<Brick />}
           />*/}
-        <SidebarLink name="JAM Codec" href="https://papi.fluffylabs.dev" icon={<Chip />} />
-        <SidebarLink name="Fluffy Labs Website" href="https://fluffylabs.dev" icon={<Logo />} />
+        <SidebarLink
+          name="JAM Codec"
+          href="https://papi.fluffylabs.dev"
+          icon={<Chip />}
+          active={activeLink === "codec"}
+        />
+        <SidebarLink
+          name="Fluffy Labs Website"
+          href="https://fluffylabs.dev"
+          icon={<Logo />}
+          active={activeLink === "website"}
+        />
       </div>
 
       <div className="py-4 border-t flex justify-center">

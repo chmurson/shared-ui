@@ -1,6 +1,5 @@
 import Logo from "@/assets/logo.svg";
 import Brand from "@/assets/brand.svg";
-import ToolName from "@/assets/tool-name.svg";
 
 import { Separator } from "@radix-ui/react-separator";
 import { Badge } from "@/ui/badge";
@@ -9,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, ExternalLink } from "lucide-react";
 import type { JSX } from "react";
 
-export const Header = ({ endSlot }: { endSlot?: JSX.Element }) => {
+export const Header = ({ endSlot, toolNameSrc }: { endSlot?: JSX.Element; toolNameSrc: string }) => {
   return (
     <div className="bg-[#242424] w-full flex flex-row items-center justify-between py-[18px] text-xs overflow-hidden border-b border-b-secondary-foreground dark:border-b-brand">
       <div className="flex items-center gap-5 sm:w-full">
@@ -19,7 +18,7 @@ export const Header = ({ endSlot }: { endSlot?: JSX.Element }) => {
         </a>
         <Separator className="bg-gray-600 w-[1px] h-[40px] sm:h-[50px]" orientation="vertical" />
         <div className="flex max-sm:flex-col-reverse max-sm:hidden items-end md:items-center h-[50px]">
-          <img src={ToolName} alt="FluffyLabs brand" className="h-[40px]" />
+          <img src={toolNameSrc} alt="FluffyLabs brand" className="h-[40px]" />
           <div className="shrink sm:ml-1 sm:mb-4">
             <Environment />
           </div>

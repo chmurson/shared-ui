@@ -29,3 +29,23 @@ Components library for Fluffy Labs
 - `build:lib`: Builds your component library with Vite.
 - `lint`: Runs ESLint.
 - `format`: Formats your code with Prettier.
+
+
+## Usage
+
+```
+// main.tsx
+import "@fluffylabs/shared-ui/style.css";
+
+//header-wrapper.tsx
+import { Header as FluffyHeader } from "@fluffylabs/shared-ui";
+import ToolName from "@/assets/tool-name.svg";
+
+const EndSlot = () => {
+  return <div className="w-full"></div>;
+};
+
+export const Header = () => {
+  return <FluffyHeader endSlot={<EndSlot />} toolNameSrc={ToolName} />;
+};
+```
