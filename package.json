@@ -24,7 +24,7 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./css": "./dist/style.css"
+    "./style.css": "./dist/style.css"
   },
   "scripts": {
     "dev": "storybook dev -p 6006",
