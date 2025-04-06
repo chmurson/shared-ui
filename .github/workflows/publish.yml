@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build Shared UI
-        run: npm run build
+        run: npm run build:lib
       - name: Publish package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
