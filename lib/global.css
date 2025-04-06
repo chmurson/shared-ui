@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --title-foreground: hsl(0 0% 56%);
   --title: hsl(0 0% 97%);

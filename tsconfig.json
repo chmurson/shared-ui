@@ -71,6 +71,6 @@
       "@/*": ["./lib/*"]
     }
   },
-  "include": ["./lib/**/*.ts", "./lib/**/*.tsx"],
-  "exclude": ["./lib/**/*.stories.*"]
+  "include": ["./lib/**/*.ts", "./lib/**/*.tsx"]
+  // "exclude": ["./lib/**/*.stories.*"]
 }
