@@ -8,9 +8,15 @@ import { cn } from "@/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import type { ReactNode } from "react";
 
-export const AppsSidebar = ({ activeLink }: { activeLink: "debugger" | "reader" | "trie" | "codec" | "website" }) => {
+export const AppsSidebar = ({
+  activeLink,
+  className,
+}: {
+  activeLink: "debugger" | "reader" | "trie" | "codec" | "website";
+  className?: string;
+}) => {
   return (
-    <div className="flex flex-col gap-5 bg-sidebar max-sm:hidden">
+    <div className={cn("flex flex-col gap-5 bg-sidebar max-sm:hidden", className)}>
       <div className="grow flex flex-col items-center justify-center px-3">
         <SidebarLink
           name="Gray Paper Reader"
