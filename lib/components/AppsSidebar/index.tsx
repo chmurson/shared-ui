@@ -7,13 +7,14 @@ import { Logo } from "./icons/Logo";
 import { cn } from "@/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import type { ReactNode } from "react";
+import { Search } from "./icons/Search";
 
 export const AppsSidebar = ({
   activeLink,
   className,
   enableDarkModeToggle = true,
 }: {
-  activeLink: "debugger" | "reader" | "trie" | "codec" | "website";
+  activeLink: "debugger" | "reader" | "trie" | "codec" | "website" | "search";
   className?: string;
   enableDarkModeToggle?: boolean;
 }) => {
@@ -21,12 +22,23 @@ export const AppsSidebar = ({
     <div className={cn("flex flex-col gap-5 bg-sidebar max-sm:hidden", className)}>
       <div className="grow flex flex-col items-center justify-center px-3">
         <SidebarLink
+          name="JAM Search"
+          href="https://search.fluffylabs.dev"
+          icon={<Search />}
+          active={activeLink === "search"}
+        />
+        <SidebarLink
           name="Gray Paper Reader"
           href="https://graypaper.fluffylabs.dev"
           icon={<Stack />}
           active={activeLink === "reader"}
         />
-        <SidebarLink name="PVM Debugger" href="/" icon={<Debugger />} active={activeLink === "debugger"} />
+        <SidebarLink
+          name="PVM Debugger"
+          href="https://pvm.fluffylabs.dev"
+          icon={<Debugger />}
+          active={activeLink === "debugger"}
+        />
         <SidebarLink
           name="Trie Visualiser"
           href="https://trie.fluffylabs.dev"
