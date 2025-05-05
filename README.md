@@ -30,7 +30,6 @@ Components library for Fluffy Labs
 - `lint`: Runs ESLint.
 - `format`: Formats your code with Prettier.
 
-
 ## Usage
 
 ```

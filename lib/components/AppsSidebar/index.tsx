@@ -11,9 +11,11 @@ import type { ReactNode } from "react";
 export const AppsSidebar = ({
   activeLink,
   className,
+  enableDarkModeToggle = true,
 }: {
   activeLink: "debugger" | "reader" | "trie" | "codec" | "website";
   className?: string;
+  enableDarkModeToggle?: boolean;
 }) => {
   return (
     <div className={cn("flex flex-col gap-5 bg-sidebar max-sm:hidden", className)}>
@@ -50,9 +52,11 @@ export const AppsSidebar = ({
         />
       </div>
 
-      <div className="py-4 border-t flex justify-center">
-        <ToggleDarkModeIcon />
-      </div>
+      {enableDarkModeToggle && (
+        <div className="py-4 border-t flex justify-center">
+          <ToggleDarkModeIcon />
+        </div>
+      )}
     </div>
   );
 };
