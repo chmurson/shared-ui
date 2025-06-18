@@ -43,19 +43,39 @@ export const Header = ({
 };
 
 const Environment = () => {
-  const { host } = window.location;
-  let env = "PR preview";
-  if (host === "pvm.fluffylabs.dev") {
-    env = "prod";
-  } else if (host === "pvm-debugger.netlify.app") {
-    env = "beta";
-  }
-
-  env = "beta";
+  const badgeName = getRightBadgeName();
 
   return (
     <Badge className="px-2 py-[0.5px] sm:py-1 bg-brand text-[10px] max-sm:text-[7px] text-black whitespace-nowrap hover:bg-brand">
-      {env}
+      {badgeName}
     </Badge>
   );
+};
+
+function getRightBadgeName() {
+  if (isSubdomainOfFullyLabs()) {
+    return undefined;
+  }
+  if (isPreviewSubdomain()) {
+    return "PR preview";
+  }
+  if (isSubdomainOfNetlifyApp()) {
+    return "beta";
+  }
+  return "dev";
+}
+
+const isSubdomainOfFullyLabs = () => {
+  const { host } = window.location;
+  return host.endsWith(".fluffylabs.dev");
+};
+
+const isSubdomainOfNetlifyApp = () => {
+  const { host } = window.location;
+  return host.endsWith(".netlify.app");
+};
+
+const isPreviewSubdomain = () => {
+  const { host } = window.location;
+  return host.endsWith(".netlify.app") && host.startsWith("deploy-preview");
 };
