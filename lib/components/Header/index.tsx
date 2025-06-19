@@ -2,9 +2,11 @@ import Logo from "@/assets/logo.svg";
 import Brand from "@/assets/brand.svg";
 
 import { Separator } from "@radix-ui/react-separator";
+import { Slot } from "@radix-ui/react-slot";
 import { Badge } from "@/ui/badge";
 import { type JSX } from "react";
 import { GithubDropdownMenu } from "./components/GithubDropdownMenu";
+import { cn } from "@/utils";
 
 export const Header = ({
   endSlot,
@@ -26,16 +28,19 @@ export const Header = ({
         </a>
         <Separator className="bg-gray-600 w-[1px] h-[40px] sm:h-[50px] " orientation="vertical" />
         <div
-          className={`flex max-sm:flex-col-reverse ${!keepNameWhenSmall ? "max-sm:hidden" : ""} items-end md:items-center h-[50px]`}
+          className={cn(
+            "flex max-sm:flex-col-reverse items-end md:items-center h-[50px]",
+            !keepNameWhenSmall && "max-sm:hidden",
+          )}
         >
-          <img src={toolNameSrc} alt="FluffyLabs brand" className="h-[40px]" />
+          <img src={toolNameSrc} alt="FluffyLabs brand" className="h-[40px] shrink-0" />
           <div className="shrink sm:ml-1 sm:mb-4">
             <Environment />
           </div>
         </div>
       </div>
-      <div className="flex w-full items-center max-sm:ml-2 justify-end">
-        {endSlot}
+      <div className="flex items-center max-sm:ml-2 justify-end gap-2 shrink-0">
+        <Slot className={cn(keepNameWhenSmall && "max-sm:hidden")}>{endSlot}</Slot>
         <GithubDropdownMenu ghRepoName={ghRepoName} />
       </div>
     </div>
