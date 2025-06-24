@@ -1,10 +1,10 @@
+import { useIsSmallBreakpoint } from "@/hooks";
 import { Button } from "@/ui/button";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuContent } from "@/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/dropdown-menu";
 import { ChevronDown, EllipsisVertical, ExternalLink } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export const GithubDropdownMenu = ({ ghRepoName }: { ghRepoName: string }) => {
-  const isSmall = useBreakpoint("(max-width: 640px)");
+  const isSmall = useIsSmallBreakpoint();
 
   return (
     <DropdownMenu>
@@ -68,15 +68,3 @@ export const GithubDropdownMenu = ({ ghRepoName }: { ghRepoName: string }) => {
     </DropdownMenu>
   );
 };
-function useBreakpoint(query: string) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    const listener = () => setMatches(media.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, [query]);
-
-  return matches;
-}
