@@ -90,28 +90,33 @@ For more usage examples and component documentation, visit our [Storybook](http:
 
 Releases are managed through the [Release Workflow](.github/workflows/shared-ui-release.yml):
 
-1. Go to [Actions → Bump Version and Release](../../actions/workflows/shared-ui-release.yml)
+1. Go to [Actions → Bump Version and Create PR](../../actions/workflows/shared-ui-release.yml)
 2. Click "Run workflow"
 3. Select:
    - **Branch**: `main` (releases should always be from main)
    - **Version bump type**: `patch`, `minor`, or `major`
-   - **Dry run**: `true` by default (preview changes without creating a release)
-4. Review the dry run results in the workflow summary
-5. If everything looks good, run again with **Dry run**: `false`
+4. The workflow will create a pull request with the version bump
 
 The workflow will:
 
-- Bump the version in package.json
-- Create a git tag
-- Generate a GitHub release with commit history
-- Automatically trigger the NPM publish workflow
+- Bump the version in package.json and package-lock.json
+- Create a pull request with the changes
+- Include commit history since the last release in the PR description
 
 ### NPM Publishing
 
-Once a release is created, the [Publish Workflow](.github/workflows/shared-ui-publish.yml) automatically:
+Once the release PR is merged, the [Publish Workflow](.github/workflows/shared-ui-publish.yml) automatically:
 
+- Detects the version bump commit
+- Creates a git tag for the new version
+- Creates a GitHub release with commit history
 - Builds the component library
 - Publishes the package to NPM registry
+
+The publish workflow only runs when:
+
+- A version bump commit (created by the release workflow) is merged to main
+- No tag exists yet for that version
 
 ### Storybook Deployment
 
