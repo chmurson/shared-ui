@@ -1,0 +1,15 @@
+## 🚀 Release v0.1.1
+
+### Version Bump
+**0.1.0 ➡️ 0.1.1**
+
+### Commits included in this release
+
+- fix(releaseWorkflow): udpate release workflow 26a6c4583413c70b73564e466c92ffae3a0b7395
+### Additional Information
+- Triggered by: chmurson
+- Source branch: main
+
+---
+
+**Note:** Merging this PR will trigger the publish workflow to create a GitHub release and publish to NPM.
