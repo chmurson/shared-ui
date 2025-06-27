@@ -1,4 +1,4 @@
-name: Bump Version and Release
+name: Bump Version and Create PR
 
 on:
   workflow_dispatch:
@@ -12,21 +12,14 @@ on:
           - patch
           - minor
           - major
-      dry_run:
-        description: "Preview only (no version bump or release)?"
-        required: true
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 jobs:
-  release:
-    name: "🚀 Release (${{ github.event.inputs.bump }})${{ github.event.inputs.dry_run == 'true' && ' [dry_run=true]' || '' }}"
+  create-release-pr:
+    name: "🚀 Create Release PR (${{ github.event.inputs.bump }})"
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: 📥 Checkout code
@@ -55,85 +48,83 @@ jobs:
         id: commit_list
         run: |
           git fetch --tags
-          last_tag=$(git describe --tags --abbrev=0)
-          echo "last_tag=$last_tag" >> "$GITHUB_OUTPUT"
-          echo "::group::🔍 Commits since $last_tag"
-          git log "$last_tag"..HEAD --pretty=format:"- %s %H" | tee commits.txt
-          echo "::endgroup::"
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$last_tag" ]; then
+            echo "No previous tags found"
+            echo "last_tag=" >> "$GITHUB_OUTPUT"
+            git log --pretty=format:"- %s %H" | head -n 20 | tee commits.txt
+          else
+            echo "last_tag=$last_tag" >> "$GITHUB_OUTPUT"
+            git log "$last_tag"..HEAD --pretty=format:"- %s %H" | tee commits.txt
+          fi
 
-      - name: 📢 Show summary in notices
-        run: |
-          echo "::notice title=Version::${{ steps.get_version.outputs.version }} ➡️ ${{ steps.bump.outputs.new_version }}"
-
-          commits=$(head -n 10 commits.txt | tr '\n' '\r')
-          echo "::notice title=Commits since ${{ steps.commit_list.outputs.last_tag }}::${commits}"
-
-      - name: 🧾 Write Markdown summary
+      - name: 🧾 Prepare PR Body
+        id: pr_body
         run: |
           {
-            echo "## 🔢 Version"
+            echo "## 🚀 Release v${{ steps.bump.outputs.new_version }}"
+            echo ""
+            echo "### Version Bump"
             echo "**${{ steps.get_version.outputs.version }} ➡️ ${{ steps.bump.outputs.new_version }}**"
             echo ""
-            if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-              echo "**🚫 DRY RUN ONLY - No actual release will be created**"
+            echo "### Commits included in this release"
+            echo ""
+            if [ -s commits.txt ]; then
+              cat commits.txt
+            else
+              echo "No new commits"
             fi
-            echo "## 📝 New commits"
             echo ""
-            head -n 20 commits.txt
-            echo ""
-            echo "## 📊 Additional Information"
+            echo "### Additional Information"
             echo "- Triggered by: ${{ github.actor }}"
-            echo "- Branch: ${{ github.ref_name }}"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: 🚫 Skip release (dry run)
-        if: ${{ github.event.inputs.dry_run == 'true' }}
-        run: echo "Dry run enabled. Skipping version bump, commit, tag, and release."
-
-      - name: 🚀 Bump version (real)
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        run: npm version ${{ github.event.inputs.bump }} --no-git-tag-version
-
-      - name: ✅ Commit & tag new version
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          version=$(node -p "require('./package.json').version")
-          git add package.json package-lock.json || true
-          git commit -m "chore: bump version to $version"
-          git tag "v$version"
-          git push origin HEAD
-          git push origin "v$version"
-
-      - name: 📋 Prepare Release Body
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        id: release_body
-        run: |
-          {
-            echo "## Version Bump"
-            echo "**${OLD_VERSION:-${{ steps.get_version.outputs.version }}} ➡️ ${NEW_VERSION:-${{ steps.bump.outputs.new_version }}}**"
+            echo "- Source branch: ${{ github.ref_name }}"
             echo ""
-            echo "## Commits since last tag"
-            cat commits.txt
+            echo "---"
             echo ""
-            echo "## Additional Information"
-            echo "- Triggered by: ${GITHUB_ACTOR}"
-            echo "- Branch: ${GITHUB_REF_NAME}"
-          } > release_body.txt
+            echo "**Note:** Merging this PR will trigger the publish workflow to create a GitHub release and publish to NPM."
+          } > pr_body.txt
 
           # Set the body as output
-          body=$(cat release_body.txt)
+          body=$(cat pr_body.txt)
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 📦 Create GitHub Release
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        uses: softprops/action-gh-release@v2
+      - name: 🚀 Bump version
+        run: npm version ${{ github.event.inputs.bump }} --no-git-tag-version
+
+      - name: 🏷️ Create tag locally
+        id: create_tag
+        run: |
+          version="${{ steps.bump.outputs.new_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to $version"
+          git tag "v$version"
+          echo "tag_name=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: 🧹 Clean up temporary files
+        run: rm -f commits.txt pr_body.txt
+
+      - name: 🔄 Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
         with:
-          tag_name: v${{ steps.bump.outputs.new_version }}
-          name: Release v${{ steps.bump.outputs.new_version }}
-          body: ${{ steps.release_body.outputs.body }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release/v${{ steps.bump.outputs.new_version }}
+          delete-branch: true
+          title: "chore: release v${{ steps.bump.outputs.new_version }}"
+          body: ${{ steps.pr_body.outputs.body }}
+          base: main
+
+      - name: 📤 Push tag
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        run: |
+          git push origin "v${{ steps.bump.outputs.new_version }}"
+
+      - name: 🧹 Cleanup on failure
+        if: failure() && steps.create_tag.outputs.tag_name
+        run: |
+          # Delete remote tag if it exists
+          git push --delete origin "${{ steps.create_tag.outputs.tag_name }}" 2>/dev/null || true
