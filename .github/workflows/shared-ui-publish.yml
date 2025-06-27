@@ -1,38 +1,196 @@
 name: Publish to NPM
 
 on:
-  # Runs when a release is published
-  release:
-    types: [published]
+  # Runs on every push to main
+  push:
+    branches:
+      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 jobs:
-  publish-shared-ui:
+  check-and-publish:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [22.x]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history to check tags
+
+      - name: Get current version
+        id: get_version
+        run: |
+          # Get the current version from package.json
+          current_version=$(node -p "require('./package.json').version")
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Current Version::v$current_version"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          current_version="${{ steps.get_version.outputs.current_version }}"
+
+          # Check if a tag exists for this version
+          if git rev-parse "v$current_version" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Tag Status::Tag v$current_version already exists"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Tag Status::Tag v$current_version does not exist"
+          fi
+
+      - name: Check if version is published on NPM
+        id: check_npm
+        run: |
+          # Extract package name from package.json
+          package_name=$(node -p "require('./package.json').name")
+          version="${{ steps.get_version.outputs.current_version }}"
+
+          if npm view "$package_name@$version" version 2>/dev/null; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Already Published::Version $version is already published to NPM"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=NPM Status::Version $version is not yet published to NPM"
+          fi
+
+      - name: Determine if should publish
+        id: should_publish
+        run: |
+          # We should publish if:
+          # 1. The version is not already published to NPM
+          # 2. This is a version bump commit (check commit message)
+
+          if [[ "${{ steps.check_npm.outputs.already_published }}" == "true" ]]; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "reason=already_published" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Decision::Skipping - already published to NPM"
+          elif [[ "$(git log -1 --pretty=%B)" =~ ^chore:\ bump\ version\ to\ .+ ]]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=version_bump_commit" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Decision::Publishing - found version bump commit"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "reason=not_version_bump" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Decision::Skipping - not a version bump commit"
+          fi
+
+      - name: Exit if should not publish
+        if: steps.should_publish.outputs.should_publish != 'true'
+        run: |
+          echo "Skipping publish. Reason: ${{ steps.should_publish.outputs.reason }}"
+          exit 0
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
       - name: Install dependencies
         run: npm ci
+
       - name: Build Shared UI
         run: npm run build:lib
-      - name: Publish package
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.tag_exists != 'true'
+        run: |
+          version="${{ steps.get_version.outputs.current_version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "v$version" -m "Release v$version"
+          git push origin "v$version"
+
+          echo "::notice title=Tag Created::Created and pushed tag v$version"
+
+      - name: Get commit history for release
+        id: get_commits
+        run: |
+          # Get the previous tag
+          current_version="${{ steps.get_version.outputs.current_version }}"
+          current_tag="v$current_version"
+
+          # Get list of all tags sorted by version
+          previous_tag=$(git tag -l "v*" | grep -v "^$current_tag$" | sort -V | tail -n1 || echo "")
+
+          if [ -z "$previous_tag" ]; then
+            echo "No previous tag found"
+            commits=$(git log --pretty=format:"- %s (%h)" --max-count=20)
+          else
+            echo "Previous tag: $previous_tag"
+            commits=$(git log "$previous_tag"..HEAD --pretty=format:"- %s (%h)")
+          fi
+
+          # Extract package name
+          package_name=$(node -p "require('./package.json').name")
+
+          # Prepare release body
+          {
+            echo "## 📦 Package Published to NPM"
+            echo ""
+            echo "Version \`$current_version\` has been published to [npm](https://www.npmjs.com/package/$package_name)."
+            echo ""
+            echo "### 📝 Changes in this release"
+            echo ""
+            echo "$commits"
+            echo ""
+            echo "### 📥 Installation"
+            echo ""
+            echo "\`\`\`bash"
+            echo "npm install $package_name@$current_version"
+            echo "\`\`\`"
+          } > release_body.txt
+
+          # Set the body as output
+          body=$(cat release_body.txt)
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.current_version }}
+          name: v${{ steps.get_version.outputs.current_version }}
+          body: ${{ steps.get_commits.outputs.body }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package to NPM
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## 📊 Publish Workflow Summary"
+            echo ""
+            echo "- **Package Version:** ${{ steps.get_version.outputs.current_version }}"
+            echo "- **Tag Existed:** ${{ steps.check_tag.outputs.tag_exists }}"
+            echo "- **Already Published to NPM:** ${{ steps.check_npm.outputs.already_published }}"
+            echo "- **Should Publish:** ${{ steps.should_publish.outputs.should_publish }}"
+            echo "- **Reason:** ${{ steps.should_publish.outputs.reason }}"
+            echo ""
+            if [[ "${{ steps.should_publish.outputs.should_publish }}" == "true" ]]; then
+              echo "✅ **Status:** Published successfully"
+            else
+              echo "⏭️ **Status:** Skipped"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
