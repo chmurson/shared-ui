@@ -88,30 +88,39 @@ For more usage examples and component documentation, visit our [Storybook](http:
 
 ### Releasing a New Version
 
-Releases are managed through the [Release Workflow](.github/workflows/shared-ui-release.yml):
+The release process involves two steps:
 
-1. Go to [Actions → Bump Version and Release](../../actions/workflows/shared-ui-release.yml)
+#### Step 1: Create a Version Bump PR
+
+1. Go to [Actions → Bump Version and Create PR](../../actions/workflows/shared-ui-release.yml)
 2. Click "Run workflow"
 3. Select:
    - **Branch**: `main` (releases should always be from main)
    - **Version bump type**: `patch`, `minor`, or `major`
-   - **Dry run**: `true` by default (preview changes without creating a release)
-4. Review the dry run results in the workflow summary
-5. If everything looks good, run again with **Dry run**: `false`
+4. The workflow will create a pull request with the version bump
+5. Review and merge the PR
 
-The workflow will:
+#### Step 2: Create Release and Publish
 
-- Bump the version in package.json
-- Create a git tag
-- Generate a GitHub release with commit history
-- Automatically trigger the NPM publish workflow
+After merging the version bump PR:
+
+1. Go to [Actions → Create Release](../../actions/workflows/shared-ui-create-release.yml)
+2. Click "Run workflow"
+3. The workflow will:
+   - Create a git tag for the new version
+   - Create a GitHub release (as draft) with commit history
+   - The release includes installation instructions and changes
 
 ### NPM Publishing
 
-Once a release is created, the [Publish Workflow](.github/workflows/shared-ui-publish.yml) automatically:
+Once a GitHub release is published (not draft), the [Publish Workflow](.github/workflows/shared-ui-npm-publish.yml) automatically:
 
+- Checks out the exact tag from the release
+- Verifies the tag matches the package.json version
 - Builds the component library
 - Publishes the package to NPM registry
+
+The publish workflow ensures you're always publishing the exact code that was tagged and released.
 
 ### Storybook Deployment
 
